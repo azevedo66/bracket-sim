@@ -24,3 +24,38 @@ const schedule = {
     15: [[2, 14], [5, 11], [3, 13], [4, 12], [8, 9], [1, 16], [7, 10]],
     16: [[2, 15], [6, 11], [3, 14], [5, 12], [4, 13]] 
 }
+
+let teams = {}
+
+function Team(name, conference, wins, losses, standing, overall, teamNum, pg, sg, sf, pf, c) {
+    this.name = name;
+    this.conference = conference;
+    this.wins = wins; 
+    this.losses = losses;
+    this.standing = standing;
+    this.overall = overall;
+    this.teamNum = teamNum;
+    this.pg = pg;
+    this.sg = sg;
+    this.sf = sf;
+    this.pf = pf; 
+    this.c = c;
+}
+
+function createLeague() {
+    for (const conference in conferenceTeams) {
+        teams[conference] = {};
+        for (let i = 0; i < conferenceTeams[conference].length; i++) {
+            let name = conferenceTeams[conference][i];
+            let conferenceName = conference;
+            let pg = Math.floor(Math.random() * (99 - 70) + 70);
+            let sg = Math.floor(Math.random() * (99 - 70) + 70);
+            let sf = Math.floor(Math.random() * (99 - 70) + 70);
+            let pf = Math.floor(Math.random() * (99 - 70) + 70);
+            let c = Math.floor(Math.random() * (99 - 70) + 70);
+            let overall = Math.round((pg + sg + sf + pf + c) / 5);
+            let team = new Team(name, conferenceName, 0, 0, i + 1, overall, i + 1, pg, sg, sf, pg, c);
+            teams[conference][conferenceTeams[conference][i]] = team;
+        }
+    }
+}
