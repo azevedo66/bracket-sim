@@ -59,3 +59,64 @@ function createLeague() {
         }
     }
 }
+
+function orderStandings() {
+    for (const conference in teams) {
+        let teamsArr = [];
+        for (const team in teams[conference]) {
+            teamsArr.push({name: teams[conference][team].name, wins: teams[conference][team].wins, standing: teams[conference][team].standing});
+        }
+        teamsArr.sort(function(a, b) {
+            return b.wins - a.wins;
+        });
+        for (let i = 1; i < teamsArr.length + 1; i++) {
+            for (const team in teams[conference]) {
+                if (teams[conference][team].name === teamsArr[i - 1].name) {
+                    teams[conference][team].standing = i;
+                }
+            }
+        }
+    }
+}
+
+function displayStandings() {
+    if (document.getElementById("standings-div")) {
+        let standingsDiv = document.getElementById("standings-div");
+        standingsDiv.remove();
+    }
+    let standingsDiv = document.createElement("div");
+    let standingsTitle = document.createElement("div");
+    standingsDiv.id = "standings-div";
+    standingsTitle.id = "standings-title";
+    standingsTitle.innerHTML = "Standings";
+    document.getElementById("standings").append(standingsDiv);
+    document.getElementById("standings-div").append(standingsTitle);
+    for (const conference in teams) {
+        let conferenceDiv = document.createElement("div");
+        conferenceDiv.id = conference;
+        document.getElementById("standings-div").append(conferenceDiv);
+        let conferenceTitle = document.createElement("div");
+        conferenceTitle.id = conference + "-title";
+        document.getElementById(conference).append(conferenceTitle);
+        conferenceTitle.innerHTML = conference;
+        for (let i = 1; i <= 16; i++) {
+            for (const team in teams[conference]) {
+                if (teams[conference][team].standing === i) {
+                    let teamDiv = document.createElement("div");
+                    teamDiv.innerHTML = i + ". " + team + " (" + teams[conference][team].overall + " ovr)" + " (" + teams[conference][team].wins + "-" + teams[conference][team].losses + ")";
+                    document.getElementById(conference).append(teamDiv);
+                }
+            }
+        }   
+    }
+}
+
+function standingsBtn() {
+    document.getElementById("standings").style.display = "block";
+    document.getElementById("bracket").style.display = "none";
+    document.getElementById("user-bracket").style.display = "none";
+}
+
+createLeague();
+orderStandings();
+displayStandings();
