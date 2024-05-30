@@ -2,7 +2,7 @@ const conferenceTeams = {
     north: ["Aliens", "Astronauts", "Blizzards", "Crabs", "Defenders", "Dragons", "Eagles", "Hammers", "Ogres", "Riot", "Rocks", "Stars", "Tigers", "Volcanoes", "Wind", "Zombies"],
     east: ["Bears", "Beavers", "Dribblers", "Fighters", "Flames", "Gnomes", "Ice", "Mustangs", "Sailors", "Skeletons", "Tornadoes", "Troopers", "Wasps", "Wings", "Wizards", "Wolves"],
     south: ["Bats", "Comets", "Flash", "Gators", "Gladiators", "Hoopers", "Hustlers", "Longhorns", "Miners", "Monsters", "Mysteries", "Roses", "Sharks", "Snipers", "Silencers", "Whales"],
-    west: ["Ballers", "Crusaders", "Dinos", "Explorers", "Frogs", "Dogs", "Jungle", "Knights", "Magicians", "Missiles", "Phantoms", "Pirates", "Scorpions", "Turtles", "Vipers", "Wave"]
+    west: ["Ballers", "Crusaders", "Dinos", "Dogs", "Explorers", "Frogs", "Jungle", "Knights", "Magicians", "Missiles", "Phantoms", "Pirates", "Scorpions", "Turtles", "Vipers", "Wave"]
 }
 
 const schedule = {
@@ -82,21 +82,24 @@ function orderStandings() {
 function displayStandings() {
     if (document.getElementById("standings-div")) {
         let standingsDiv = document.getElementById("standings-div");
+        let standingsTitle = document.getElementById("standings-title");
         standingsDiv.remove();
+        standingsTitle.remove();
     }
     let standingsDiv = document.createElement("div");
     let standingsTitle = document.createElement("div");
     standingsDiv.id = "standings-div";
     standingsTitle.id = "standings-title";
     standingsTitle.innerHTML = "Standings";
+    document.getElementById("standings").append(standingsTitle);
     document.getElementById("standings").append(standingsDiv);
-    document.getElementById("standings-div").append(standingsTitle);
     for (const conference in teams) {
         let conferenceDiv = document.createElement("div");
         conferenceDiv.id = conference;
         document.getElementById("standings-div").append(conferenceDiv);
         let conferenceTitle = document.createElement("div");
         conferenceTitle.id = conference + "-title";
+        conferenceTitle.className = "conference-title";
         document.getElementById(conference).append(conferenceTitle);
         conferenceTitle.innerHTML = conference;
         for (let i = 1; i <= 16; i++) {
@@ -111,6 +114,54 @@ function displayStandings() {
     }
 }
 
+function displaySchedule() {
+    if (document.getElementById("schedule-div")) {
+        let scheduleDiv = document.getElementById("schedule-div");
+        let scheduleTitle = document.getElementById("schedule-title");
+        scheduleDiv.remove();
+        scheduleTitle.remove();
+    }
+    let scheduleDiv = document.createElement("div");
+    let scheduleTitle = document.createElement("div");
+    scheduleDiv.id = "schedule-div";
+    scheduleTitle.id = "schedule-title";
+    scheduleTitle.innerHTML = "Schedule";
+    document.getElementById("standings").append(scheduleTitle);
+    document.getElementById("standings").append(scheduleDiv);
+    if (schedule.day <= 16) {
+        let day = schedule.day.toString();
+        for (const conference in teams) {
+            let conferenceDiv = document.createElement("div");
+            let conferenceTitle = document.createElement("div");
+            conferenceDiv.id = conference + "-schedule";
+            conferenceTitle.className = "conference-title";
+            conferenceTitle.innerHTML = conference;
+            document.getElementById("schedule-div").append(conferenceDiv);
+            document.getElementById(conference + "-schedule").append(conferenceTitle);
+            for (let i = 0; i < schedule[day].length; i++) {
+                let team1;
+                let team2;
+                let record1;
+                let record2;
+                for (const team in teams[conference]) {
+                    if (teams[conference][team].standing === schedule[day][i][0]) {
+                        team1 = team;
+                        record1 = "(" + teams[conference][team].wins + "-" + teams[conference][team].losses + ")";
+                    } else if (teams[conference][team].standing === schedule[day][i][1]) {
+                        team2 = team;
+                        record2 = "(" + teams[conference][team].wins + "-" + teams[conference][team].losses + ")";
+                    }
+                }
+                let matchup = document.createElement("div");
+                matchup.innerHTML = team1 + " " + record1 + " vs. " + team2 + " " + record2;
+                document.getElementById(conference + "-schedule").append(matchup);
+            }
+        }
+    } else {
+        document.getElementById("schedule-div").innerHTML = "No more regular season games";
+    }
+}
+
 function standingsBtn() {
     document.getElementById("standings").style.display = "block";
     document.getElementById("bracket").style.display = "none";
@@ -120,3 +171,4 @@ function standingsBtn() {
 createLeague();
 orderStandings();
 displayStandings();
+displaySchedule();

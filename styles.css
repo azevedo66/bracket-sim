@@ -9,3 +9,23 @@
 #user-bracket {
     display: none;
 }
+
+#standings-title, #schedule-title {
+    text-align: center;
+    font-size: 40px;
+    padding: 20px;
+    text-decoration: underline;
+}
+
+#standings-div, #schedule-div {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+.conference-title {
+    text-align: center;
+    font-size: 25px;
+    text-decoration: underline;
+    text-transform: capitalize;
+}
