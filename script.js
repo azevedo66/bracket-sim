@@ -162,7 +162,7 @@ function displaySchedule() {
     }
 }
 
-function simGame(team1, team2) {
+function playGame(team1, team2) {
     let teamScore1 = Math.floor(Math.random() * ((team1.overall * 2) - 100)) + 100;
     let teamScore2 = Math.floor(Math.random() * ((team2.overall * 2) - 100)) + 100;
     if (teamScore1 > teamScore2) {
@@ -179,13 +179,58 @@ function simGame(team1, team2) {
     }
 }
 
+function simDay() {
+    let day = schedule.day.toString();
+    for (const conference in teams) {
+        for (let i = 0; i < schedule[day].length; i++) {
+            let team1;
+            let team2;
+            for (const team in teams[conference]) {
+                if (teams[conference][team].teamNum === schedule[day][i][0]) {
+                    team1 = teams[conference][team];
+                } else if (teams[conference][team].teamNum === schedule[day][i][1]) {
+                    team2 = teams[conference][team];
+                }
+            }
+            let winner = playGame(team1, team2);
+            if (winner.name === team1.name) {
+                teams[conference][team1.name].wins += 1;
+                teams[conference][team2.name].losses += 1;
+            } else if (winner.name === team2.name) {
+                teams[conference][team2.name].wins += 1;
+                teams[conference][team1.name].losses += 1;
+            }
+        }
+    }
+}
+
 function standingsBtn() {
     document.getElementById("standings").style.display = "block";
     document.getElementById("bracket").style.display = "none";
     document.getElementById("user-bracket").style.display = "none";
 }
 
-createLeague();
-orderStandings();
-displayStandings();
-displaySchedule();
+function simGameBtn() {
+    if (schedule.day <= 16) {
+        simDay();
+        orderStandings();
+        displayStandings();
+        displaySchedule();
+        schedule.day += 1;
+        if (schedule.day === 17) {
+            displayStandings();
+            displaySchedule();
+        }
+    }
+    
+}
+
+function startBtn() {
+    document.getElementById("standings").style.display = "block";
+    document.getElementById("bracket").style.display = "none";
+    document.getElementById("user-bracket").style.display = "none";
+    createLeague();
+    orderStandings();
+    displayStandings();
+    displaySchedule();
+}
