@@ -225,6 +225,16 @@ function simGameBtn() {
     
 }
 
+function simSeasonBtn() {
+    while (schedule.day <= 16) {
+        simDay();
+        orderStandings();
+        schedule.day += 1;
+    }
+    displayStandings();
+    displaySchedule();
+}
+
 function startBtn() {
     document.getElementById("standings").style.display = "block";
     document.getElementById("bracket").style.display = "none";
