@@ -162,6 +162,23 @@ function displaySchedule() {
     }
 }
 
+function simGame(team1, team2) {
+    let teamScore1 = Math.floor(Math.random() * ((team1.overall * 2) - 100)) + 100;
+    let teamScore2 = Math.floor(Math.random() * ((team2.overall * 2) - 100)) + 100;
+    if (teamScore1 > teamScore2) {
+        return team1;
+    } else if (teamScore1 < teamScore2) {
+        return team2;
+    } else {
+        let winningNum = Math.round(Math.random());
+        if (winningNum = 1) {
+            return team1;
+        } else {
+            return team2;
+        }
+    }
+}
+
 function standingsBtn() {
     document.getElementById("standings").style.display = "block";
     document.getElementById("bracket").style.display = "none";
