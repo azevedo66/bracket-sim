@@ -62,6 +62,12 @@ body {
     margin: auto;
 }
 
+#finals-winner {
+    text-align: center;
+    margin: auto;
+    font-size: 20px;
+}
+
 .team {
     background-color: white;
     border: 1px solid black;
