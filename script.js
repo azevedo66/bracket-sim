@@ -253,19 +253,28 @@ function displayBracket() {
 }
 
 function playGame(team1, team2) {
-    let teamScore1 = Math.floor(Math.random() * ((team1.overall * 2) - 100)) + 100;
-    let teamScore2 = Math.floor(Math.random() * ((team2.overall * 2) - 100)) + 100;
-    if (teamScore1 > teamScore2) {
-        return team1;
-    } else if (teamScore1 < teamScore2) {
-        return team2;
-    } else {
-        let winningNum = Math.round(Math.random());
-        if (winningNum === 1) {
-            return team1;
+    let wins1 = 0;
+    let wins2 = 0;
+    for (let i = 0; i < 11; i++) {
+        let score1 = Math.floor(Math.random() * team1.overall);
+        let score2 = Math.floor(Math.random() * team2.overall);
+        if (score1 > score2) {
+            wins1++;
+        } else if (score1 < score2) {
+            wins2++;
         } else {
-            return team2;
+            let winningNum = Math.round(Math.random());
+            if (winningNum === 1) {
+                wins1++;
+            } else {
+                wins2++;
+            }
         }
+    }
+    if (wins1 > wins2) {
+        return team1;
+    } else {
+        return team2;
     }
 }
 
