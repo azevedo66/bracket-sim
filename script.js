@@ -25,7 +25,13 @@ const schedule = {
     16: [[2, 15], [6, 11], [3, 14], [5, 12], [4, 13]] 
 }
 
+const firstRoundMatchups = [[1, 16], [8, 9], [5, 12], [4, 13], [6, 11], [3, 14], [7, 10], [2, 15]];
+
+let bracketRound = 0;
+
 let teams = {}
+
+let bracketMatchups = {}
 
 function Team(name, conference, wins, losses, standing, overall, teamNum, pg, sg, sf, pf, c) {
     this.name = name;
@@ -162,6 +168,77 @@ function displaySchedule() {
     }
 }
 
+function displayBracket() {
+    if (document.getElementById("bracket-div")) {
+        let bracketDiv = document.getElementById("bracket-div");
+        let finalsSection = document.getElementById("finals-section");
+        bracketDiv.remove();
+        finalsSection.remove();
+    }
+    let finalsSection = document.createElement("div");
+    let finalsTitle = document.createElement("div");
+    let finalsMatchup = document.createElement("div");
+    let finalsTeam1 = document.createElement("div");
+    let finalsTeam2 = document.createElement("div");
+    finalsSection.id = "finals-section";
+    finalsTitle.id = "finals-title";
+    finalsMatchup.id = "finals-matchup";
+    finalsTeam1.id = "finals-team-1";
+    finalsTeam2.id = "finals-team-2";
+    finalsTitle.innerHTML = "Championship";
+    finalsMatchup.className = "matchup";
+    finalsTeam1.className = "team";
+    finalsTeam2.className = "team";
+    document.getElementById("bracket").append(finalsSection);
+    document.getElementById("finals-section").append(finalsTitle);
+    document.getElementById("finals-section").append(finalsMatchup);
+    document.getElementById("finals-matchup").append(finalsTeam1);
+    document.getElementById("finals-matchup").append(finalsTeam2);
+    let bracketDiv = document.createElement("div");
+    bracketDiv.id = "bracket-div";
+    document.getElementById("bracket").append(bracketDiv);
+    for (let i = 1; i <= 9; i++) {
+        let bracketSection = document.createElement("div");
+        bracketSection.id = "bracket-section-" + i;
+        bracketSection.className = "bracket-section";
+        document.getElementById("bracket-div").append(bracketSection);
+    }
+    for (let i = 1; i <= 5; i++) {
+        let iteration = 64;
+        for (let j = 0; j < i; j++) {
+            iteration /= 2;
+        }
+        for (let j = 1; j <= iteration; j++) {
+            let bracketMatchup = document.createElement("div");
+            let matchupTeam1 = document.createElement("div");
+            let matchupTeam2 = document.createElement("div");
+            bracketMatchup.id = "round-" + i + "-matchup-" + j;
+            matchupTeam1.id = "round-" + i + "-matchup-" + j + "-team-" + 1;
+            matchupTeam2.id = "round-" + i + "-matchup-" + j + "-team-" + 2;
+            bracketMatchup.className = "matchup";
+            matchupTeam1.className = "team";
+            matchupTeam2.className = "team";
+            if (j <= iteration / 2) {
+                document.getElementById("bracket-section-" + i).append(bracketMatchup);
+                document.getElementById("round-" + i + "-matchup-" + j).append(matchupTeam1);
+                document.getElementById("round-" + i + "-matchup-" + j).append(matchupTeam2);
+            } else {
+                document.getElementById("bracket-section-" + (10 - i)).append(bracketMatchup)
+                document.getElementById("round-" + i + "-matchup-" + j).append(matchupTeam1);
+                document.getElementById("round-" + i + "-matchup-" + j).append(matchupTeam2);
+            }
+        }
+    }
+    for (const round in bracketMatchups) {
+        for (let i = 1; i <= bracketMatchups[round].length; i++) {
+            let team1 = bracketMatchups[round][i - 1][0];
+            let team2 = bracketMatchups[round][i - 1][1];
+            document.getElementById("round-" + round + "-matchup-" + i + "-team-" + 1).innerHTML = team1.standing + ". " + team1.name + " (" + team1.overall + ")";
+            document.getElementById("round-" + round + "-matchup-" + i + "-team-" + 2).innerHTML = team2.standing + ". " + team2.name + " (" + team2.overall + ")";
+        }
+    }
+}
+
 function playGame(team1, team2) {
     let teamScore1 = Math.floor(Math.random() * ((team1.overall * 2) - 100)) + 100;
     let teamScore2 = Math.floor(Math.random() * ((team2.overall * 2) - 100)) + 100;
@@ -204,6 +281,28 @@ function simDay() {
     }
 }
 
+function createInitialMatchups() {
+    if (bracketRound === 1) {
+        let roundMatchups = [];
+        for (const conference in teams) {
+            for (let i = 0; i < firstRoundMatchups.length; i++) {
+                let team1;
+                let team2;
+                for (const team in teams[conference]) {
+                    if (teams[conference][team].standing === firstRoundMatchups[i][0]) {
+                        team1 = teams[conference][team];
+                    } else if (teams[conference][team].standing === firstRoundMatchups[i][1]) {
+                        team2 = teams[conference][team];
+                    }
+                }
+                roundMatchups.push([team1, team2]);
+            }
+        }
+        bracketMatchups["1"] = roundMatchups;
+    }
+    displayBracket();
+}
+
 function standingsBtn() {
     document.getElementById("standings").style.display = "block";
     document.getElementById("bracket").style.display = "none";
@@ -211,28 +310,41 @@ function standingsBtn() {
 }
 
 function simGameBtn() {
-    if (schedule.day <= 16) {
-        simDay();
+    if (schedule.day <= 17) {
+        if (schedule.day <= 16) {
+            simDay();
+        } else if (schedule.day === 17) {
+            bracketRound = 1;
+            bracketBtn();
+        }
         orderStandings();
         displayStandings();
         displaySchedule();
         schedule.day += 1;
-        if (schedule.day === 17) {
-            displayStandings();
-            displaySchedule();
+    }
+}
+
+function simSeasonBtn() {
+    while (schedule.day <= 17) {
+        if (schedule.day <= 16) {
+            simDay();
+        } else if (schedule.day === 17) {
+            bracketRound = 1;
+            bracketBtn();
         }
+        orderStandings();
+        displayStandings();
+        displaySchedule();
+        schedule.day += 1;
     }
     
 }
 
-function simSeasonBtn() {
-    while (schedule.day <= 16) {
-        simDay();
-        orderStandings();
-        schedule.day += 1;
-    }
-    displayStandings();
-    displaySchedule();
+function bracketBtn() {
+    document.getElementById("standings").style.display = "none";
+    document.getElementById("bracket").style.display = "block";
+    document.getElementById("user-bracket").style.display = "none";
+    createInitialMatchups();
 }
 
 function startBtn() {

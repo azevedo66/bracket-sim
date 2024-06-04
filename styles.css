@@ -1,3 +1,6 @@
+body {
+    background-color: rgb(200, 200, 200);
+}
 #standings {
     display: none;
 }
@@ -29,3 +32,38 @@
     text-decoration: underline;
     text-transform: capitalize;
 }
+
+#bracket-div {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.bracket-section {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+}
+
+.matchup {
+    height: 50px;
+    width: 130px;
+}
+
+#finals-title {
+    text-align: center;
+    font-size: 30px;
+    text-decoration: underline;
+}
+
+#finals-matchup {
+    text-align: center;
+    margin: auto;
+}
+
+.team {
+    background-color: white;
+    border: 1px solid black;
+}
+
