@@ -1,40 +1,55 @@
-const teamA = {
-    name: "Team A",
-    teamScore: 0,
-    starters: [
-        {name: "Player 1A", rating: 90, points: 0},
-        {name: "Player 2A", rating: 90, points: 0},
-        {name: "Player 3A", rating: 90, points: 0},
-        {name: "Player 4A", rating: 90, points: 0},
-        {name: "Player 5A", rating: 90, points: 0}
-    ],
-    bench: [
-        {name: "Player 6A", rating: 75, points: 0},
-        {name: "Player 7A", rating: 75, points: 0},
-        {name: "Player 8A", rating: 75, points: 0},
-        {name: "Player 9A", rating: 75, points: 0},
-        {name: "Player 10A", rating: 75, points: 0}
-    ]
+const conferenceTeams = {
+    north: ["Aliens", "Astronauts", "Blizzards", "Crabs", "Defenders", "Dragons", "Eagles", "Hammers", "Ogres", "Riot", "Rocks", "Stars", "Tigers", "Volcanoes", "Wind", "Zombies"],
+    east: ["Bears", "Beavers", "Dribblers", "Fighters", "Flames", "Gnomes", "Ice", "Mustangs", "Sailors", "Skeletons", "Tornadoes", "Troopers", "Wasps", "Wings", "Wizards", "Wolves"],
+    south: ["Bats", "Comets", "Flash", "Gators", "Gladiators", "Hoopers", "Hustlers", "Longhorns", "Miners", "Monsters", "Mysteries", "Roses", "Sharks", "Snipers", "Silencers", "Whales"],
+    west: ["Ballers", "Crusaders", "Dinos", "Dogs", "Explorers", "Frogs", "Jungle", "Knights", "Magicians", "Missiles", "Phantoms", "Pirates", "Scorpions", "Turtles", "Vipers", "Wave"]
 };
 
-const teamB = {
-    name: "Team B",
-    teamScore: 0,
-    starters: [
-        {name: "Player 1B", rating: 80, points: 0},
-        {name: "Player 2B", rating: 80, points: 0},
-        {name: "Player 3B", rating: 80, points: 0},
-        {name: "Player 4B", rating: 80, points: 0},
-        {name: "Player 5B", rating: 80, points: 0}
-    ],
-    bench: [
-        {name: "Player 6B", rating: 75, points: 0},
-        {name: "Player 7B", rating: 75, points: 0},
-        {name: "Player 8B", rating: 75, points: 0},
-        {name: "Player 9B", rating: 75, points: 0},
-        {name: "Player 10B", rating: 75, points: 0}
-    ]
-};
+const teams = {};
+
+class Team {
+    constructor(name, conference, wins, losses, standing, overall, teamNum, starters, bench) {
+        this.name = name;
+        this.conference = conference;
+        this.wins = wins;
+        this.losses = losses;
+        this.standing = standing;
+        this.overall = overall;
+        this.teamNum = teamNum;
+        this.starters = starters;
+        this.bench = bench;
+    }
+}
+
+function createLeague() {
+    for (const conference in conferenceTeams) {
+        teams[conference] = {};
+        for (let i = 0; i < conferenceTeams[conference].length; i++) {
+            function starterOvr() {
+                return Math.floor(Math.random() * (99 - 80) + 80);
+            }
+            function benchOvr() {
+                return Math.floor(Math.random() * (80 - 69) + 69);
+            }
+            function teamOvr(starters, bench) {
+                let overallSum = 0;
+                for (let i = 0; i < 5; i++) {
+                    overallSum += starters[i];
+                    overallSum += bench[i];
+                }
+                return Math.round((overallSum + 95) / 10);
+            }
+            const name = conferenceTeams[conference][i];
+            const conferenceName = conference;
+            const starters = [starterOvr(), starterOvr(), starterOvr(), starterOvr(), starterOvr()];
+            const bench = [benchOvr(), benchOvr(), benchOvr(), benchOvr(), benchOvr()];
+            const overall = teamOvr(starters, bench);
+            const team = new Team(name, conferenceName, 0, 0, i + 1, overall, i + 1, starters, bench);
+            teams[conference][conferenceTeams[conference][i]] == team;
+            console.log(team);
+        }
+    }
+}
 
 function simulatePlayerScore(player) {
     const randomNum = Math.random() * 100;
@@ -89,4 +104,4 @@ function simulateGame() {
 
 }
 
-simulateGame();
+createLeague();
