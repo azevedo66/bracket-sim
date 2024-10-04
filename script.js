@@ -46,10 +46,10 @@ function createLeague() {
         teams[conference] = {};
         for (let i = 0; i < conferenceTeams[conference].length; i++) {
             function starterOvr() {
-                return Math.floor(Math.random() * (99 - 80) + 80);
+                return Math.floor(Math.random() * (99 - 70) + 70);
             }
             function benchOvr() {
-                return Math.floor(Math.random() * (80 - 69) + 69);
+                return Math.floor(Math.random() * (70 - 60) + 60);
             }
             function teamOvr(starters, bench) {
                 let overallSum = 0;
@@ -57,7 +57,7 @@ function createLeague() {
                     overallSum += starters[i];
                     overallSum += bench[i];
                 }
-                return Math.round((overallSum + 95) / 10);
+                return Math.round((overallSum + 145) / 10);
             }
             const name = conferenceTeams[conference][i];
             const conferenceName = conference;
@@ -94,7 +94,6 @@ function displayStandings() {
         document.getElementById("standings-section").append(conferenceDiv);
         document.getElementById(conference).append(conferenceTitle);
         for (let i = 1; i <= 16; i++) {
-            console.log(teams[conference]);
             for (const team in teams[conference]) {
                 if (teams[conference][team].standing === i) {
                     const teamDiv = document.createElement("div");
@@ -173,61 +172,107 @@ function orderStandings() {
     }
 }
 
-/*
+function simulateGame(team1, team2) {
+    const starterPossessions = 50;
+    const benchPossessions = 25;
+    let teamScore1 = 0;
+    let teamScore2 = 0;
+    for (let i = 0; i < starterPossessions; i++) {
+        const possession1 = simulatePossession(team1, "starters");
+        const possession2 = simulatePossession(team2, "starters");
+        teamScore1 += possession1;
+        teamScore2 += possession2;
+    }
+    for (let i = 0; i < benchPossessions; i++) {
+        const possession1 = simulatePossession(team1, "bench");
+        const possession2 = simulatePossession(team2, "bench");
+        teamScore1 += possession1;
+        teamScore2 += possession2;
+    }
+    if (teamScore1 > teamScore2) {
+        return team1;
+    } else if (teamScore2 > teamScore1) {
+        return team2;
+    } else {
+        const randomWinner = Math.floor(Math.random());
+        if (randomWinner === 1) {
+            return team1;
+        } else {
+            return team2;
+        }
+    }
+}
+
+function simulatePossession(team, lineup) {
+    let player;
+    if (lineup === "starters") {
+        const randomPlayerIndex = Math.floor(Math.random() * team.starters.length);
+        player = team.starters[randomPlayerIndex];
+    } else {
+        const randomPlayerIndex = Math.floor(Math.random() * team.bench.length);
+        player = team.bench[randomPlayerIndex];
+    }
+    const points = simulatePlayerScore(player);
+    return points;
+}
+
 function simulatePlayerScore(player) {
     const randomNum = Math.random() * 100;
     const minFgPercentage = 40;
-    const playerFgPercentage = ((player.rating - 69) * 0.5) + minFgPercentage;
+    const playerFgPercentage = ((player - 69) * 0.5) + minFgPercentage;
     if (randomNum < playerFgPercentage) {
         const pointAmountNum = Math.random() * 100;
         if (pointAmountNum < 70) {
-            player.points += 2;
             return 2;
         } else {
-            player.points += 3;
             return 3;
         }
     }
     return 0;
 }
 
-function simulatePossesion(team, lineup) {
-    let player;
-    if (lineup === "starters") {
-        const randomPlayerIndex = Math.floor(Math.random() * team.starters.length);
-        player = team.starters[randomPlayerIndex];
-    } else {
-        randomPlayerIndex = Math.floor(Math.random() * team.bench.length);
-        player = team.bench[randomPlayerIndex];
-    }
-    const points = simulatePlayerScore(player);
-    team.teamScore += points;
+function start() {
+    const button = document.createElement("button");
+    button.id = "simulateGameBtn";
+    button.innerHTML = "Simulate Game";
+    document.getElementById("container").append(button);
+    button.addEventListener("click", function() {
+        if (schedule.day <= 16) {
+            simDay();
+            orderStandings();
+            displayStandings();
+            displaySchedule();
+        }
+        
+    });
+    createLeague();
+    displayStandings();
+    displaySchedule();
 }
 
-function simulateGame() {
-    const starterPossessions = 50;
-    const benchPossesions = 25;
-    for (let i = 0; i < starterPossessions; i++) {
-        simulatePossesion(teamA, "starters");
-        simulatePossesion(teamB, "bench");
+function simDay() {
+    const day = schedule.day.toString();
+    for (const conference in teams) {
+        for (let i = 0; i < schedule[day].length; i++) {
+            let team1;
+            let team2;
+            for (const team in teams[conference]) {
+                if (teams[conference][team].teamNum === schedule[day][i][0]) {
+                    team1 = teams[conference][team];
+                } else if (teams[conference][team].teamNum === schedule[day][i][1]) {
+                    team2 = teams[conference][team];
+                }
+            }
+            const winner = simulateGame(team1, team2);
+            if (winner.name === team1.name) {
+                teams[conference][team1.name].wins += 1;
+                teams[conference][team2.name].losses += 1; 
+            } else if (winner.name === team2.name) {
+                teams[conference][team1.name].losses += 1;
+                teams[conference][team2.name].wins += 1;
+            }
+        }
     }
-
-    console.log(`Final Score:`);
-    console.log(`${teamA.name}: ${teamA.teamScore}`);
-    console.log(`${teamB.name}: ${teamB.teamScore}`);
-    console.log(`${teamA.name} Starter scores:`);
-    for (let i = 0; i < 5; i++) {
-        console.log(`${teamA.starters[i].name}: ${teamA.starters[i].points} points`);
-    }
-
-    console.log(`${teamB.name} Bench scores:`);
-    for (let i = 0; i < 5; i++) {
-        console.log(`${teamB.bench[i].name}: ${teamB.bench[i].points} points`);
-    }
-
+    schedule.day += 1;
 }
-
-*/
-createLeague();
-displayStandings();
-displaySchedule();
+start();
