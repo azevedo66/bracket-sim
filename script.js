@@ -45,12 +45,48 @@ function createLeague() {
             const bench = [benchOvr(), benchOvr(), benchOvr(), benchOvr(), benchOvr()];
             const overall = teamOvr(starters, bench);
             const team = new Team(name, conferenceName, 0, 0, i + 1, overall, i + 1, starters, bench);
-            teams[conference][conferenceTeams[conference][i]] == team;
-            console.log(team);
+            teams[conference][conferenceTeams[conference][i]] = team;
         }
     }
 }
 
+function displayStandings() {
+    if (document.getElementById("standings-div")) {
+        const standingsDiv = document.getElementById("standings-div");
+        standingsDiv.remove();
+    } 
+    const standingsDiv = document.createElement("div");
+    const standingsTitle = document.createElement("div");
+    const standingsSection = document.createElement("div");
+    standingsDiv.id = "standings-div";
+    standingsTitle.id = "standings-title";
+    standingsSection.id = "standings-section";
+    standingsTitle.innerHTML = "Standings";
+    document.getElementById("container").append(standingsDiv);
+    document.getElementById("standings-div").append(standingsTitle);
+    document.getElementById("standings-div").append(standingsSection);
+    for (const conference in teams) {
+        const conferenceDiv = document.createElement("div");
+        const conferenceTitle = document.createElement("div");
+        conferenceDiv.id = conference;
+        conferenceTitle.id = conference + "-title";
+        conferenceTitle.innerHTML = conference;
+        document.getElementById("standings-section").append(conferenceDiv);
+        document.getElementById(conference).append(conferenceTitle);
+        for (let i = 1; i <= 16; i++) {
+            console.log(teams[conference]);
+            for (const team in teams[conference]) {
+                if (teams[conference][team].standing === i) {
+                    const teamDiv = document.createElement("div");
+                    teamDiv.innerHTML = i + ". " + team + " (" + teams[conference][team].overall + " ovr)" + " (" + teams[conference][team].wins + "-" + teams[conference][team].losses + ")";
+                    document.getElementById(conference).append(teamDiv);
+                }
+            }
+        }
+    }
+}
+
+/*
 function simulatePlayerScore(player) {
     const randomNum = Math.random() * 100;
     const minFgPercentage = 40;
@@ -104,4 +140,6 @@ function simulateGame() {
 
 }
 
+*/
 createLeague();
+displayStandings();
