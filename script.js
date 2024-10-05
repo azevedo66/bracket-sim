@@ -25,13 +25,13 @@ const schedule = {
     16: [[2, 15], [6, 11], [3, 14], [5, 12], [4, 13]] 
 };
 
-const firstRoundMatchups = [[1, 16], [8, 9], [5, 12], [4, 13], [6, 11], [3, 14], [7, 10], [2, 15]];
-
-const teams = {};
-
 const bracketMatchups = {
     round: 0
 };
+
+const firstRoundMatchups = [[1, 16], [8, 9], [5, 12], [4, 13], [6, 11], [3, 14], [7, 10], [2, 15]];
+
+const teams = {};
 
 class Team {
     constructor(name, conference, wins, losses, standing, overall, teamNum, starters, bench) {
@@ -258,19 +258,28 @@ function simDay() {
 function simRound() {
     const round = bracketMatchups.round;
     const roundMatchups = bracketMatchups[round];
-    let nextRoundMatchups = [];
-    for (let i = 0; i < roundMatchups.length; i += 2) {
-        const team1 = roundMatchups[i][0];
-        const team2 = roundMatchups[i][1];
-        const team3 = roundMatchups[i + 1][0];
-        const team4 = roundMatchups[i + 1][1];
-        const winner1 = simulateGame(team1, team2);
-        const winner2 = simulateGame(team3, team4);
-        nextRoundMatchups.push([winner1, winner2]);
+    if (bracketMatchups.round === 6) {
+        let team1 = roundMatchups[0][0];
+        let team2 = roundMatchups[0][1];
+        let winner = simulateGame(team1, team2);
+        bracketMatchups[bracketMatchups.round + 1] = [winner];
+        bracketMatchups.round += 1;
+    } else if (bracketMatchups.round < 6) {
+        let nextRoundMatchups = [];
+        for (let i = 0; i < roundMatchups.length; i += 2) {
+            const team1 = roundMatchups[i][0];
+            const team2 = roundMatchups[i][1];
+            const team3 = roundMatchups[i + 1][0];
+            const team4 = roundMatchups[i + 1][1];
+            const winner1 = simulateGame(team1, team2);
+            const winner2 = simulateGame(team3, team4);
+            nextRoundMatchups.push([winner1, winner2]);
+        }
+        bracketMatchups[round + 1] = nextRoundMatchups;
+        bracketMatchups.round += 1;
     }
-    bracketMatchups[round + 1] = nextRoundMatchups;
-    bracketMatchups.round += 1;
 }
+
 function createBracketMatchups() {
     if (bracketMatchups.round === 1) {
         let roundMatchups = [];
@@ -300,36 +309,37 @@ function displayBracket() {
         if (round !== "round") {
             const roundSection = document.createElement("div");
             const roundTitle = document.createElement("div");
-            roundSection.id = round + "-section"; 
+            roundSection.id = "round-" + round + "-section"; 
             roundTitle.id = "round-title-" + round;
             roundTitle.innerHTML = "Round " + round;
             document.getElementById("bracket-div").append(roundTitle);
             document.getElementById("bracket-div").append(roundSection);
             for (let i = 0; i < bracketMatchups[round].length; i++) {
-                const matchupDiv = document.createElement("div");
-                const teamDiv1 = document.createElement("div");
-                const teamDiv2 = document.createElement("div");
-                matchupDiv.id = round + "-matchup-" + (i + 1);
-                teamDiv1.id = round + "-matchup-" + (i + 1) + "-team-1";
-                teamDiv2.id = round + "-matchup-" + (i + 1) + "-team-2";
-                teamDiv1.innerHTML = bracketMatchups[round][i][0].name;
-                teamDiv2.innerHTML = bracketMatchups[round][i][1].name;
-                document.getElementById(round + "-section").append(matchupDiv);
-                document.getElementById(round + "-matchup-" + (i + 1)).append(teamDiv1);
-                document.getElementById(round + "-matchup-" + (i + 1)).append(teamDiv2);
-            }
+                if (round <= 6) {
+                    const matchupDiv = document.createElement("div");
+                    const teamDiv1 = document.createElement("div");
+                    const teamDiv2 = document.createElement("div");
+                    matchupDiv.id = round + "-matchup-" + (i + 1);
+                    teamDiv1.id = round + "-matchup-" + (i + 1) + "-team-1";
+                    teamDiv2.id = round + "-matchup-" + (i + 1) + "-team-2";
+                    teamDiv1.innerHTML = bracketMatchups[round][i][0].name;
+                    teamDiv2.innerHTML = bracketMatchups[round][i][1].name;
+                    document.getElementById("round-" + round + "-section").append(matchupDiv);
+                    document.getElementById(round + "-matchup-" + (i + 1)).append(teamDiv1);
+                    document.getElementById(round + "-matchup-" + (i + 1)).append(teamDiv2);
+                } else {
+                    const teamDiv = document.createElement("div");
+                    teamDiv.id = "champion";
+                    teamDiv.innerHTML = bracketMatchups[round][i].name;
+                    document.getElementById("round-" + round + "-section").append(teamDiv);
+                }
+            }  
         }
-        
     }
-    console.log(bracketMatchups);
-}
-
-function clearAllElements() {
-    document.getElementById("container").innerHTML = "";
 }
 
 function refreshScreen() {
-    clearAllElements();
+    document.getElementById("container").innerHTML = "";
     if (bracketMatchups.round === 0) {
         const button = document.createElement("button");
         button.id = "simulateGameBtn";
@@ -356,7 +366,7 @@ function refreshScreen() {
         button.innerHTML = "Simulate Round";
         document.getElementById("container").append(button);
         button.addEventListener("click", function() {
-            if (bracketMatchups.round < 6) {
+            if (bracketMatchups.round <= 7) {
                 simRound();
                 refreshScreen();
             }
