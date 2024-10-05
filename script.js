@@ -25,7 +25,13 @@ const schedule = {
     16: [[2, 15], [6, 11], [3, 14], [5, 12], [4, 13]] 
 };
 
+const firstRoundMatchups = [[1, 16], [8, 9], [5, 12], [4, 13], [6, 11], [3, 14], [7, 10], [2, 15]];
+
 const teams = {};
+
+const bracketMatchups = {
+    round: 0
+};
 
 class Team {
     constructor(name, conference, wins, losses, standing, overall, teamNum, starters, bench) {
@@ -71,10 +77,6 @@ function createLeague() {
 }
 
 function displayStandings() {
-    if (document.getElementById("standings-div")) {
-        const standingsDiv = document.getElementById("standings-div");
-        standingsDiv.remove();
-    } 
     const standingsDiv = document.createElement("div");
     const standingsTitle = document.createElement("div");
     const standingsSection = document.createElement("div");
@@ -89,7 +91,7 @@ function displayStandings() {
         const conferenceDiv = document.createElement("div");
         const conferenceTitle = document.createElement("div");
         conferenceDiv.id = conference;
-        conferenceTitle.id = conference + "-title";
+        conferenceTitle.id = conference + "-title-standings";
         conferenceTitle.innerHTML = conference;
         document.getElementById("standings-section").append(conferenceDiv);
         document.getElementById(conference).append(conferenceTitle);
@@ -106,10 +108,6 @@ function displayStandings() {
 }
 
 function displaySchedule() {
-    if (document.getElementById("schedule-div")) {
-        const scheduleDiv = document.getElementById("schedule-div");
-        scheduleDiv.remove();
-    }
     const scheduleDiv = document.createElement("div");
     const scheduleTitle = document.createElement("div");
     const scheduleSection = document.createElement("div");
@@ -126,9 +124,9 @@ function displaySchedule() {
             const conferenceDiv = document.createElement("div");
             const conferenceTitle = document.createElement("div");
             conferenceDiv.id = conference + "-schedule";
-            conferenceTitle.id = "conference-title";
+            conferenceTitle.id = conference + "-title-schedule";
             document.getElementById("schedule-div").append(conferenceDiv);
-            document.getElementById(conference + "-title").append(conferenceTitle);
+            document.getElementById(conference + "-schedule").append(conferenceTitle);
             for (let i = 0; i < schedule[day].length; i++) {
                 let team1;
                 let team2;
@@ -231,25 +229,6 @@ function simulatePlayerScore(player) {
     return 0;
 }
 
-function start() {
-    const button = document.createElement("button");
-    button.id = "simulateGameBtn";
-    button.innerHTML = "Simulate Game";
-    document.getElementById("container").append(button);
-    button.addEventListener("click", function() {
-        if (schedule.day <= 16) {
-            simDay();
-            orderStandings();
-            displayStandings();
-            displaySchedule();
-        }
-        
-    });
-    createLeague();
-    displayStandings();
-    displaySchedule();
-}
-
 function simDay() {
     const day = schedule.day.toString();
     for (const conference in teams) {
@@ -275,4 +254,97 @@ function simDay() {
     }
     schedule.day += 1;
 }
+
+function createBracketMatchups() {
+    if (bracketMatchups.round === 1) {
+        let roundMatchups = [];
+        for (const conference in teams) {
+            for (let i = 0; i < firstRoundMatchups.length; i++) {
+                let team1;
+                let team2;
+                for (const team in teams[conference]) {
+                    if (teams[conference][team].standing === firstRoundMatchups[i][0]) {
+                        team1 = teams[conference][team];
+                    } else if (teams[conference][team].standing === firstRoundMatchups[i][1]) {
+                        team2 = teams[conference][team];
+                    }
+                }
+                roundMatchups.push([team1, team2]);
+            }
+        }
+        bracketMatchups[1] = roundMatchups;
+    }
+    console.log(bracketMatchups);
+}
+
+function displayBracket() {
+    const bracketDiv = document.createElement("div");
+    bracketDiv.id = "bracket-div";
+    document.getElementById("container").append(bracketDiv);
+    for (const round in bracketMatchups) {        
+        if (round !== "round") {
+            const roundSection = document.createElement("div");
+            const roundTitle = document.createElement("div");
+            roundSection.id = round + "-section"; 
+            roundTitle.id = "round-title-" + round;
+            roundTitle.innerHTML = "Round " + round;
+            document.getElementById("bracket-div").append(roundTitle);
+            document.getElementById("bracket-div").append(roundSection);
+            for (let i = 0; i < bracketMatchups[round].length; i++) {
+                const matchupDiv = document.createElement("div");
+                const teamDiv1 = document.createElement("div");
+                const teamDiv2 = document.createElement("div");
+                matchupDiv.id = round + "-matchup-" + (i + 1);
+                teamDiv1.id = round + "-matchup-" + (i + 1) + "-team-1";
+                teamDiv2.id = round + "-matchup-" + (i + 1) + "-team-2";
+                teamDiv1.innerHTML = bracketMatchups[round][i][0].name;
+                teamDiv2.innerHTML = bracketMatchups[round][i][1].name;
+                document.getElementById(round + "-section").append(matchupDiv);
+                document.getElementById(round + "-matchup-" + (i + 1)).append(teamDiv1);
+                document.getElementById(round + "-matchup-" + (i + 1)).append(teamDiv2);
+            }
+        }
+        
+    }
+}
+
+function clearAllElements() {
+    document.getElementById("container").innerHTML = "";
+}
+
+function refreshScreen() {
+    clearAllElements();
+    if (bracketMatchups.round === 0) {
+        const button = document.createElement("button");
+        button.id = "simulateGameBtn";
+        button.innerHTML = "Simulate Game";
+        document.getElementById("container").append(button);
+        button.addEventListener("click", function() {
+            if (schedule.day <= 17) {
+                if (schedule.day <= 16) {
+                    simDay();
+                    refreshScreen();
+                } else if (schedule.day === 17) {
+                    bracketMatchups.round += 1;
+                    schedule.day += 1;
+                    refreshScreen();
+                }
+            }
+        });
+        orderStandings();
+        displayStandings();
+        displaySchedule();
+    } else {
+        if (bracketMatchups.round === 1) {
+            createBracketMatchups();
+        }
+        displayBracket();
+    }
+}
+
+function start() {
+    createLeague();
+    refreshScreen();
+}
+
 start();
