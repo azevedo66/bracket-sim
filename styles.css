@@ -1,0 +1,41 @@
+.bracket-container {
+   display: flex;
+   justify-content: left;
+}
+
+.standings-container, .schedule-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.conference-title-standings {
+    text-transform: capitalize;
+    text-align: center;
+    font-weight: bold;
+}
+
+.bracket-matchup, .champion {
+    background: grey;
+    padding: 5px;
+    margin: 5px;
+    border: 2px solid black;
+}
+
+.bracket-team-top {
+    border-bottom: 2px solid black;
+}
+
+.bracket-team-bottom {
+    border-top: 2px solid black;
+}
+
+#standings-title, #schedule-title {
+    text-align: center;
+    font-weight: bold;
+}
+
+#simulateGameBtn {
+    display: block;
+    margin: auto;
+}
+

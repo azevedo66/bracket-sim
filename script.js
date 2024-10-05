@@ -83,6 +83,7 @@ function displayStandings() {
     standingsDiv.id = "standings-div";
     standingsTitle.id = "standings-title";
     standingsSection.id = "standings-section";
+    standingsSection.className = "standings-container";
     standingsTitle.innerHTML = "Standings";
     document.getElementById("container").append(standingsDiv);
     document.getElementById("standings-div").append(standingsTitle);
@@ -92,6 +93,7 @@ function displayStandings() {
         const conferenceTitle = document.createElement("div");
         conferenceDiv.id = conference;
         conferenceTitle.id = conference + "-title-standings";
+        conferenceTitle.className = "conference-title-standings";
         conferenceTitle.innerHTML = conference;
         document.getElementById("standings-section").append(conferenceDiv);
         document.getElementById(conference).append(conferenceTitle);
@@ -114,6 +116,7 @@ function displaySchedule() {
     scheduleDiv.id = "schedule-div";
     scheduleTitle.id = "schedule-title";
     scheduleSection.id = "schedule-section";
+    scheduleSection.className = "schedule-container";
     scheduleTitle.innerHTML = "Schedule";
     document.getElementById("container").append(scheduleDiv);
     document.getElementById("schedule-div").append(scheduleTitle);
@@ -125,7 +128,7 @@ function displaySchedule() {
             const conferenceTitle = document.createElement("div");
             conferenceDiv.id = conference + "-schedule";
             conferenceTitle.id = conference + "-title-schedule";
-            document.getElementById("schedule-div").append(conferenceDiv);
+            document.getElementById("schedule-section").append(conferenceDiv);
             document.getElementById(conference + "-schedule").append(conferenceTitle);
             for (let i = 0; i < schedule[day].length; i++) {
                 let team1;
@@ -304,6 +307,7 @@ function createBracketMatchups() {
 function displayBracket() {
     const bracketDiv = document.createElement("div");
     bracketDiv.id = "bracket-div";
+    bracketDiv.className = "bracket-container";
     document.getElementById("container").append(bracketDiv);
     for (const round in bracketMatchups) {        
         if (round !== "round") {
@@ -311,9 +315,13 @@ function displayBracket() {
             const roundTitle = document.createElement("div");
             roundSection.id = "round-" + round + "-section"; 
             roundTitle.id = "round-title-" + round;
-            roundTitle.innerHTML = "Round " + round;
-            document.getElementById("bracket-div").append(roundTitle);
+            if (round > 6) {
+                roundTitle.innerHTML = "Champion";
+            } else {
+                roundTitle.innerHTML = "Round " + round;
+            }
             document.getElementById("bracket-div").append(roundSection);
+            document.getElementById("round-" + round + "-section").append(roundTitle);
             for (let i = 0; i < bracketMatchups[round].length; i++) {
                 if (round <= 6) {
                     const matchupDiv = document.createElement("div");
@@ -322,6 +330,9 @@ function displayBracket() {
                     matchupDiv.id = round + "-matchup-" + (i + 1);
                     teamDiv1.id = round + "-matchup-" + (i + 1) + "-team-1";
                     teamDiv2.id = round + "-matchup-" + (i + 1) + "-team-2";
+                    matchupDiv.className = "bracket-matchup";
+                    teamDiv1.className = "bracket-team-top";
+                    teamDiv2.className = "bracket-team-bottom";
                     teamDiv1.innerHTML = bracketMatchups[round][i][0].name;
                     teamDiv2.innerHTML = bracketMatchups[round][i][1].name;
                     document.getElementById("round-" + round + "-section").append(matchupDiv);
@@ -331,6 +342,7 @@ function displayBracket() {
                     const teamDiv = document.createElement("div");
                     teamDiv.id = "champion";
                     teamDiv.innerHTML = bracketMatchups[round][i].name;
+                    teamDiv.className = "champion";
                     document.getElementById("round-" + round + "-section").append(teamDiv);
                 }
             }  
