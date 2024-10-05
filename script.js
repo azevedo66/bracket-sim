@@ -255,6 +255,22 @@ function simDay() {
     schedule.day += 1;
 }
 
+function simRound() {
+    const round = bracketMatchups.round;
+    const roundMatchups = bracketMatchups[round];
+    let nextRoundMatchups = [];
+    for (let i = 0; i < roundMatchups.length; i += 2) {
+        const team1 = roundMatchups[i][0];
+        const team2 = roundMatchups[i][1];
+        const team3 = roundMatchups[i + 1][0];
+        const team4 = roundMatchups[i + 1][1];
+        const winner1 = simulateGame(team1, team2);
+        const winner2 = simulateGame(team3, team4);
+        nextRoundMatchups.push([winner1, winner2]);
+    }
+    bracketMatchups[round + 1] = nextRoundMatchups;
+    bracketMatchups.round += 1;
+}
 function createBracketMatchups() {
     if (bracketMatchups.round === 1) {
         let roundMatchups = [];
@@ -274,7 +290,6 @@ function createBracketMatchups() {
         }
         bracketMatchups[1] = roundMatchups;
     }
-    console.log(bracketMatchups);
 }
 
 function displayBracket() {
@@ -306,6 +321,7 @@ function displayBracket() {
         }
         
     }
+    console.log(bracketMatchups);
 }
 
 function clearAllElements() {
@@ -335,6 +351,16 @@ function refreshScreen() {
         displayStandings();
         displaySchedule();
     } else {
+        const button = document.createElement("button");
+        button.id = "simulateRoundBtn";
+        button.innerHTML = "Simulate Round";
+        document.getElementById("container").append(button);
+        button.addEventListener("click", function() {
+            if (bracketMatchups.round < 6) {
+                simRound();
+                refreshScreen();
+            }
+        });
         if (bracketMatchups.round === 1) {
             createBracketMatchups();
         }
