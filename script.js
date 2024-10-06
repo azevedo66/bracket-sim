@@ -29,6 +29,8 @@ const bracketMatchups = {
     round: 0
 };
 
+const userBracket = {};
+
 const firstRoundMatchups = [[1, 16], [8, 9], [5, 12], [4, 13], [6, 11], [3, 14], [7, 10], [2, 15]];
 
 const teams = {};
@@ -233,29 +235,36 @@ function simulatePlayerScore(player) {
 }
 
 function simDay() {
-    const day = schedule.day.toString();
-    for (const conference in teams) {
-        for (let i = 0; i < schedule[day].length; i++) {
-            let team1;
-            let team2;
-            for (const team in teams[conference]) {
-                if (teams[conference][team].teamNum === schedule[day][i][0]) {
-                    team1 = teams[conference][team];
-                } else if (teams[conference][team].teamNum === schedule[day][i][1]) {
-                    team2 = teams[conference][team];
+    if (schedule.day <= 16) {
+        const day = schedule.day.toString();
+        for (const conference in teams) {
+            for (let i = 0; i < schedule[day].length; i++) {
+                let team1;
+                let team2;
+                for (const team in teams[conference]) {
+                    if (teams[conference][team].teamNum === schedule[day][i][0]) {
+                        team1 = teams[conference][team];
+                    } else if (teams[conference][team].teamNum === schedule[day][i][1]) {
+                        team2 = teams[conference][team];
+                    }
+                }
+                const winner = simulateGame(team1, team2);
+                if (winner.name === team1.name) {
+                    teams[conference][team1.name].wins += 1;
+                    teams[conference][team2.name].losses += 1; 
+                } else if (winner.name === team2.name) {
+                    teams[conference][team1.name].losses += 1;
+                    teams[conference][team2.name].wins += 1;
                 }
             }
-            const winner = simulateGame(team1, team2);
-            if (winner.name === team1.name) {
-                teams[conference][team1.name].wins += 1;
-                teams[conference][team2.name].losses += 1; 
-            } else if (winner.name === team2.name) {
-                teams[conference][team1.name].losses += 1;
-                teams[conference][team2.name].wins += 1;
-            }
         }
-    }
-    schedule.day += 1;
+        schedule.day += 1;
+        standingsScreen();
+    } else if (schedule.day === 17) {
+        bracketMatchups.round += 1;
+        schedule.day += 1;
+        bracketScreen();
+    } 
 }
 
 function simRound() {
@@ -333,15 +342,15 @@ function displayBracket() {
                     matchupDiv.className = "bracket-matchup";
                     teamDiv1.className = "bracket-team-top";
                     teamDiv2.className = "bracket-team-bottom";
-                    teamDiv1.innerHTML = bracketMatchups[round][i][0].name;
-                    teamDiv2.innerHTML = bracketMatchups[round][i][1].name;
+                    teamDiv1.innerHTML = bracketMatchups[round][i][0].standing + ". " + bracketMatchups[round][i][0].name + " (" + bracketMatchups[round][i][0].overall + " ovr)";
+                    teamDiv2.innerHTML = bracketMatchups[round][i][1].standing + ". " + bracketMatchups[round][i][1].name + " (" + bracketMatchups[round][i][1].overall + " ovr)";
                     document.getElementById("round-" + round + "-section").append(matchupDiv);
                     document.getElementById(round + "-matchup-" + (i + 1)).append(teamDiv1);
                     document.getElementById(round + "-matchup-" + (i + 1)).append(teamDiv2);
                 } else {
                     const teamDiv = document.createElement("div");
                     teamDiv.id = "champion";
-                    teamDiv.innerHTML = bracketMatchups[round][i].name;
+                    teamDiv.innerHTML = bracketMatchups[round][i].standing + ". " + bracketMatchups[round][i].name + " (" + bracketMatchups[round][i].overall + " ovr)";
                     teamDiv.className = "champion";
                     document.getElementById("round-" + round + "-section").append(teamDiv);
                 }
@@ -350,49 +359,180 @@ function displayBracket() {
     }
 }
 
-function refreshScreen() {
+function createUserBracket() {
     document.getElementById("container").innerHTML = "";
-    if (bracketMatchups.round === 0) {
-        const button = document.createElement("button");
-        button.id = "simulateGameBtn";
-        button.innerHTML = "Simulate Game";
-        document.getElementById("container").append(button);
-        button.addEventListener("click", function() {
-            if (schedule.day <= 17) {
-                if (schedule.day <= 16) {
-                    simDay();
-                    refreshScreen();
-                } else if (schedule.day === 17) {
-                    bracketMatchups.round += 1;
-                    schedule.day += 1;
-                    refreshScreen();
+
+    const formContainer = document.createElement("div");
+    formContainer.id = "form-container";
+    document.getElementById("container").append(formContainer);
+
+    const form = document.createElement("form");
+    form.method = "post";
+    form.id = "pick-form";
+
+    let roundCount = Object.keys(userBracket).length;
+    if (roundCount === 0) {
+        userBracket[roundCount + 1] = bracketMatchups[roundCount + 1];
+        roundCount++;
+    } 
+
+    for (let i = 0; i < userBracket[roundCount].length; i++) {
+        const teamBtn1 = document.createElement("input");
+        teamBtn1.type = "radio";
+        teamBtn1.name = "matchup-" + i;
+        teamBtn1.value = userBracket[roundCount][i][0].name;
+        const teamBtn2 = document.createElement("input");
+        teamBtn2.type = "radio";
+        teamBtn2.name = "matchup-" + i;
+        teamBtn2.value = userBracket[roundCount][i][1].name;
+
+        const labelBtn1 = document.createElement("label");
+        labelBtn1.textContent = userBracket[roundCount][i][0].name;
+
+        const labelBtn2 = document.createElement("label");
+        labelBtn2.textContent = userBracket[roundCount][i][1].name;
+
+        form.appendChild(teamBtn1);
+        form.appendChild(labelBtn1);
+        form.appendChild(teamBtn2);
+        form.appendChild(labelBtn2);
+        form.appendChild(document.createElement("br"));
+    }
+
+    const submitButton = document.createElement("button");
+    submitButton.type = "button";
+    submitButton.textContent = "Submit";
+    submitButton.onclick = submitPicks;
+
+    form.appendChild(submitButton);
+
+    document.getElementById("form-container").appendChild(form);
+    
+}
+
+function submitPicks() {
+    const form = document.getElementById("pick-form");
+    const roundCount = Object.keys(userBracket).length;
+    let nextRoundMatchups = [];
+    if (roundCount < 6) {
+        for (let i = 0; i < userBracket[roundCount].length; i += 2) {
+            const selectedPick1 = form.querySelector(`input[name="matchup-${i}"]:checked`);
+            const selectedPick2 = form.querySelector(`input[name="matchup-${i + 1}"]:checked`);
+            let team1;
+            let team2;
+            for (const conference in teams) {
+                for (const team in teams[conference]) {
+                    if (teams[conference][team].name === selectedPick1.value) {
+                        team1 = teams[conference][team];
+                    } else if (teams[conference][team].name === selectedPick2.value) {
+                        team2 = teams[conference][team];
+                    }
                 }
             }
-        });
-        orderStandings();
-        displayStandings();
-        displaySchedule();
-    } else {
-        const button = document.createElement("button");
-        button.id = "simulateRoundBtn";
-        button.innerHTML = "Simulate Round";
-        document.getElementById("container").append(button);
-        button.addEventListener("click", function() {
-            if (bracketMatchups.round <= 7) {
-                simRound();
-                refreshScreen();
-            }
-        });
-        if (bracketMatchups.round === 1) {
-            createBracketMatchups();
+            nextRoundMatchups.push([team1, team2]); 
         }
-        displayBracket();
+        userBracket[roundCount + 1] = nextRoundMatchups;
+        createUserBracket();
+    } else if (roundCount === 6) {
+        const selectedPick = form.querySelector(`input[name="matchup-0"]:checked`);
+        let winner;
+        for (const conference in teams) {
+            for (const team in teams[conference]) {
+                if (teams[conference][team].name === selectedPick.value) {
+                    winner = teams[conference][team];
+                }
+            }
+        }
+        userBracket[roundCount + 1] = [winner];
+        displayUserPicks();
     }
+}
+
+function displayUserPicks() {
+    document.getElementById("container").innerHTML = "";
+    const userBracketDiv = document.createElement("div");
+    userBracketDiv.id = "user-bracket-div";
+    userBracketDiv.className = "bracket-container";
+    document.getElementById("container").append(userBracketDiv);
+    for (const round in userBracket) {
+        const roundSection = document.createElement("div");
+        const roundTitle = document.createElement("div");
+        roundSection.id = "round-" + round + "-section";
+        roundTitle.id = "round-title-" + round;
+        if (round > 6) {
+            roundTitle.innerHTML = "Champion";
+        } else {
+            roundTitle.innerHTML = "Round " + round;
+        }
+        document.getElementById("user-bracket-div").append(roundSection);
+        document.getElementById("round-" + round + "-section").append(roundTitle);
+        for (let i = 0; i < userBracket[round].length; i++) {
+            if (round <= 6) {
+                const matchupDiv = document.createElement("div");
+                const teamDiv1 = document.createElement("div");
+                const teamDiv2 = document.createElement("div");
+                matchupDiv.id = round + "-matchup-" + (i + 1);
+                teamDiv1.id = round + "-matchup-" + (i + 1) + "-team-1";
+                teamDiv2.id = round + "-matchup-" + (i + 1) + "-team-2";
+                matchupDiv.className = "bracket-matchup";
+                teamDiv1.className = "bracket-team-top";
+                teamDiv2.className = "bracket-team-bottom";
+                teamDiv1.innerHTML = userBracket[round][i][0].standing + ". " + userBracket[round][i][0].name + " (" + userBracket[round][i][0].overall + " ovr)";
+                teamDiv2.innerHTML = userBracket[round][i][1].standing + ". " + userBracket[round][i][1].name + " (" + userBracket[round][i][1].overall + " ovr)";
+                document.getElementById("round-" + round + "-section").append(matchupDiv);
+                document.getElementById(round + "-matchup-" + (i + 1)).append(teamDiv1);
+                document.getElementById(round + "-matchup-" + (i + 1)).append(teamDiv2);
+            } else {
+                const teamDiv = document.createElement("div");
+                teamDiv.id = "champion";
+                teamDiv.innerHTML = userBracket[round][i].standing + ". " + userBracket[round][i].name + " (" + userBracket[round][i].overall + " ovr)";
+                teamDiv.className = "champion";
+                document.getElementById("round-" + round + "-section").append(teamDiv);
+            }
+        }
+    }
+}
+
+function standingsScreen() {
+    document.getElementById("container").innerHTML = "";
+    const button = document.createElement("button");
+    button.id = "simulateGameBtn";
+    button.innerHTML = "Simulate Game";
+    document.getElementById("container").append(button);
+    button.addEventListener("click", function() {
+        simDay();
+    });
+    orderStandings();
+    displayStandings();
+    displaySchedule();
+}
+
+function bracketScreen() {
+    document.getElementById("container").innerHTML = "";
+    const button = document.createElement("button");
+    button.id = "simulateRoundBtn";
+    button.innerHTML = "Simulate Round";
+    document.getElementById("container").append(button);
+    button.addEventListener("click", function() {
+        simRound();
+        bracketScreen();
+    });
+    if (bracketMatchups.round === 1) {
+        createBracketMatchups();
+        const button2 = document.createElement("button");
+        button2.id = "createBracketBtn";
+        button2.innerHTML = "Create Bracket";
+        document.getElementById("container").append(button2);
+        button2.addEventListener("click", function() {
+            createUserBracket();
+        })
+    }
+    displayBracket();
 }
 
 function start() {
     createLeague();
-    refreshScreen();
+    standingsScreen();
 }
 
 start();
